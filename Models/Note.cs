@@ -71,6 +71,21 @@ namespace NotKosem.Models
             }
         }
 
+        private DateTime? _reminderAt;
+
+        public DateTime? ReminderAt
+        {
+            get => _reminderAt;
+            set
+            {
+                if (_reminderAt != value)
+                {
+                    _reminderAt = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         protected void OnPropertyChanged(

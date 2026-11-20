@@ -2,16 +2,14 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using NotKosem.Models;
 using NotKosem.Services;
-
-using Color = System.Windows.Media.Color;
-using ColorConverter = System.Windows.Media.ColorConverter;
-using MessageBox = System.Windows.MessageBox;
 
 namespace NotKosem
 {
@@ -26,6 +24,7 @@ namespace NotKosem
         private bool _storageReady = true;
 
         private System.Windows.Forms.NotifyIcon? _trayIcon;
+        private DispatcherTimer _reminderTimer;
 
         public MainWindow()
         {
@@ -40,10 +39,7 @@ namespace NotKosem
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    "Notlar yüklenirken hata oluştu:\n" + ex.Message,
-                    "NotKöşem",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                    "Notlar yüklenirken hata oluştu:\n" + ex.Message);
 
                 _notes = new ObservableCollection<Note>();
                 _storageReady = false;
@@ -59,8 +55,15 @@ namespace NotKosem
             {
                 NoteList.SelectedIndex = 0;
             }
-        }
 
+            _reminderTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(15)
+            };
+
+            _reminderTimer.Tick += ReminderTimer_Tick;
+            _reminderTimer.Start();
+        }
 
         private void InitializeTray()
         {
@@ -91,6 +94,7 @@ namespace NotKosem
             exitItem.Click += (sender, e) =>
             {
                 _isExiting = true;
+                _reminderTimer?.Stop();
 
                 if (_trayIcon != null)
                 {
@@ -107,7 +111,6 @@ namespace NotKosem
             menu.Items.Add(exitItem);
 
             _trayIcon.ContextMenuStrip = menu;
-
             _trayIcon.DoubleClick += (sender, e) => ShowWindow();
         }
 
@@ -155,7 +158,6 @@ namespace NotKosem
             }
         }
 
-
         private void ShowWindow()
         {
             Dispatcher.Invoke(() =>
@@ -177,6 +179,8 @@ namespace NotKosem
             }
             else
             {
+                _reminderTimer?.Stop();
+
                 if (_trayIcon != null)
                 {
                     _trayIcon.Visible = false;
@@ -191,11 +195,9 @@ namespace NotKosem
             Note newNote = new Note();
 
             _notes.Add(newNote);
-
             NoteList.SelectedItem = newNote;
 
             LoadNote(newNote);
-
             SaveNotes();
         }
 
@@ -213,17 +215,137 @@ namespace NotKosem
                     note.BackgroundColor));
 
             MainBorder.Opacity = note.Opacity;
-
             OpacitySlider.Value = note.Opacity;
 
             OpacityValueText.Text =
                 $"%{Math.Round(note.Opacity * 100)}";
 
             SelectColor(note.BackgroundColor);
-
+            UpdateReminderStatus();
             UpdateNoteCount();
 
             _isLoadingNote = false;
+        }
+
+        private void UpdateReminderStatus()
+        {
+            if (_currentNote?.ReminderAt is DateTime reminder)
+            {
+                ReminderDatePicker.SelectedDate = reminder.Date;
+                ReminderTimeTextBox.Text = reminder.ToString("HH:mm");
+
+                ReminderStatusText.Text =
+                    "Hatırlatıcı: " + reminder.ToString("dd.MM.yyyy HH:mm");
+            }
+            else
+            {
+                ReminderDatePicker.SelectedDate = null;
+                ReminderTimeTextBox.Text = "09:00";
+                ReminderStatusText.Text = "Hatırlatıcı ayarlanmadı.";
+            }
+        }
+
+        private void SetReminderButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            if (_currentNote == null)
+                return;
+
+            if (ReminderDatePicker.SelectedDate == null)
+            {
+                MessageBox.Show("Lütfen bir tarih seç.");
+                return;
+            }
+
+            if (!TimeSpan.TryParseExact(
+                    ReminderTimeTextBox.Text.Trim(),
+                    @"hh\:mm",
+                    CultureInfo.InvariantCulture,
+                    out TimeSpan time))
+            {
+                MessageBox.Show("Saat formatı hatalı. Örnek: 14:30");
+                return;
+            }
+
+            DateTime reminder = ReminderDatePicker.SelectedDate.Value.Date
+                .Add(time);
+
+            if (reminder <= DateTime.Now)
+            {
+                MessageBox.Show("Hatırlatıcı gelecekte bir tarih ve saat olmalı.");
+                return;
+            }
+
+            _currentNote.ReminderAt = reminder;
+
+            UpdateReminderStatus();
+            SaveNotes();
+
+            MessageBox.Show(
+                "Hatırlatıcı başarıyla oluşturuldu.",
+                "NotKöşem",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+
+        private void CancelReminderButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            if (_currentNote == null)
+                return;
+
+            _currentNote.ReminderAt = null;
+
+            UpdateReminderStatus();
+            SaveNotes();
+        }
+
+        private void ReminderTimer_Tick(
+            object? sender,
+            EventArgs e)
+        {
+            DateTime now = DateTime.Now;
+
+            foreach (Note note in _notes)
+            {
+                if (note.ReminderAt.HasValue &&
+                    note.ReminderAt.Value <= now)
+                {
+                    ShowReminderNotification(note);
+
+                    note.ReminderAt = null;
+                    SaveNotes();
+                }
+            }
+
+            if (_currentNote != null)
+                UpdateReminderStatus();
+        }
+
+        private void ShowReminderNotification(Note note)
+        {
+            if (_trayIcon == null)
+                return;
+
+            string title = string.IsNullOrWhiteSpace(note.Title)
+                ? "NotKöşem"
+                : note.Title;
+
+            string message = string.IsNullOrWhiteSpace(note.Content)
+                ? "Hatırlatma zamanı geldi."
+                : note.Content;
+
+            if (message.Length > 180)
+                message = message.Substring(0, 180) + "...";
+
+            _trayIcon.BalloonTipTitle = title;
+            _trayIcon.BalloonTipText = message;
+            _trayIcon.BalloonTipIcon =
+                System.Windows.Forms.ToolTipIcon.Info;
+
+            _trayIcon.ShowBalloonTip(5000);
         }
 
         private void OpacitySlider_ValueChanged(
@@ -236,7 +358,6 @@ namespace NotKosem
             double opacity = OpacitySlider.Value;
 
             MainBorder.Opacity = opacity;
-
             _currentNote.Opacity = opacity;
 
             OpacityValueText.Text =
@@ -298,9 +419,7 @@ namespace NotKosem
             SelectionChangedEventArgs e)
         {
             if (NoteList.SelectedItem is Note selectedNote)
-            {
                 LoadNote(selectedNote);
-            }
         }
 
         private void NoteTitleTextBox_TextChanged(
@@ -311,7 +430,6 @@ namespace NotKosem
                 return;
 
             _currentNote.Title = NoteTitleTextBox.Text;
-
             SaveNotes();
         }
 
@@ -323,7 +441,6 @@ namespace NotKosem
                 return;
 
             _currentNote.Content = NoteTextBox.Text;
-
             SaveNotes();
         }
 
@@ -360,7 +477,6 @@ namespace NotKosem
             OpacitySlider.Value = 1.0;
             _currentNote.Opacity = 1.0;
             MainBorder.Opacity = 1.0;
-
             OpacityValueText.Text = "%100";
 
             SaveNotes();
@@ -371,9 +487,7 @@ namespace NotKosem
             RoutedEventArgs e)
         {
             if (NoteList.SelectedIndex > 0)
-            {
                 NoteList.SelectedIndex--;
-            }
         }
 
         private void NextNoteButton_Click(
@@ -381,9 +495,7 @@ namespace NotKosem
             RoutedEventArgs e)
         {
             if (NoteList.SelectedIndex < _notes.Count - 1)
-            {
                 NoteList.SelectedIndex++;
-            }
         }
 
         private void DeleteNoteButton_Click(
@@ -405,7 +517,6 @@ namespace NotKosem
                 return;
 
             _notes.Remove(noteToDelete);
-
             SaveNotes();
 
             if (_notes.Count == 0)
@@ -422,9 +533,7 @@ namespace NotKosem
             MouseButtonEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed)
-            {
                 DragMove();
-            }
         }
 
         private void CloseButton_Click(
