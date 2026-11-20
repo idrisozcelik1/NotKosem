@@ -3,16 +3,18 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="NotKöşem"
         Width="360"
-        Height="440"
+        Height="480"
         MinWidth="300"
-        MinHeight="350"
+        MinHeight="380"
         WindowStyle="None"
         ResizeMode="CanResizeWithGrip"
         AllowsTransparency="True"
         Background="Transparent"
         Topmost="True">
 
-    <Border Background="#FFF2C6"
+    <Border x:Name="MainBorder"
+            Background="#FFF2C6"
+            Opacity="1"
             CornerRadius="14"
             BorderBrush="#E4D69E"
             BorderThickness="1">
@@ -21,6 +23,8 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="45"/>
                 <RowDefinition Height="48"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="35"/>
@@ -71,7 +75,7 @@
                 </Grid>
             </Border>
 
-            <!-- NOT SEÇME VE YENİ NOT ALANI -->
+            <!-- NOT LİSTESİ VE YENİ NOT -->
             <Grid Grid.Row="1" Margin="10,5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -94,7 +98,7 @@
                         ToolTip="Yeni not oluştur"/>
             </Grid>
 
-            <!-- ÖNCEKİ VE SONRAKİ NOT -->
+            <!-- ÖNCEKİ VE SONRAKİ -->
             <Grid Grid.Row="2" Margin="10,0,10,5">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -112,14 +116,79 @@
                         Margin="3,0,0,0"/>
             </Grid>
 
-            <!-- NOT İÇERİĞİ -->
-            <Grid Grid.Row="3" Margin="14,8,14,5">
+            <!-- RENK SEÇİMİ -->
+            <Grid Grid.Row="3" Margin="12,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Renk:"
+                           VerticalAlignment="Center"
+                           Foreground="#5C5132"
+                           Margin="0,0,8,0"/>
+
+                <ComboBox x:Name="ColorSelector"
+                          Grid.Column="1"
+                          SelectedIndex="0"
+                          SelectionChanged="ColorSelector_SelectionChanged"
+                          VerticalContentAlignment="Center">
+
+                    <ComboBoxItem Content="Sarı" Tag="#FFF2C6"/>
+                    <ComboBoxItem Content="Mavi" Tag="#D9EDFF"/>
+                    <ComboBoxItem Content="Yeşil" Tag="#DDF5DC"/>
+                    <ComboBoxItem Content="Pembe" Tag="#FFE0E8"/>
+                    <ComboBoxItem Content="Mor" Tag="#EAE0FF"/>
+                    <ComboBoxItem Content="Beyaz" Tag="#FFFFFF"/>
+
+                </ComboBox>
+
+                <Button Grid.Column="2"
+                        Content="⟲"
+                        Width="30"
+                        Margin="5,0,0,0"
+                        Click="ResetOpacityButton_Click"
+                        ToolTip="Saydamlığı sıfırla"/>
+            </Grid>
+
+            <!-- SAYDAMLIK AYARI -->
+            <Grid Grid.Row="4" Margin="12,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="40"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Saydamlık:"
+                           VerticalAlignment="Center"
+                           Foreground="#5C5132"
+                           FontSize="11"/>
+
+                <Slider x:Name="OpacitySlider"
+                        Grid.Column="1"
+                        Minimum="0.3"
+                        Maximum="1"
+                        Value="1"
+                        Margin="8,0"
+                        VerticalAlignment="Center"
+                        ValueChanged="OpacitySlider_ValueChanged"/>
+
+                <TextBlock x:Name="OpacityValueText"
+                           Grid.Column="2"
+                           Text="%100"
+                           FontSize="10"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Right"/>
+            </Grid>
+
+            <!-- NOT BAŞLIĞI VE İÇERİĞİ -->
+            <Grid Grid.Row="5" Margin="14,8,14,5">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="35"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- NOT BAŞLIĞI -->
                 <TextBox x:Name="NoteTitleTextBox"
                          Grid.Row="0"
                          FontSize="16"
@@ -132,7 +201,6 @@
                          TextChanged="NoteTitleTextBox_TextChanged"
                          ToolTip="Not başlığı"/>
 
-                <!-- NOT YAZMA ALANI -->
                 <TextBox x:Name="NoteTextBox"
                          Grid.Row="1"
                          Margin="0,10,0,0"
@@ -147,11 +215,10 @@
                          HorizontalScrollBarVisibility="Disabled"
                          TextChanged="NoteTextBox_TextChanged"
                          Padding="0"/>
-
             </Grid>
 
             <!-- ALT BİLGİ VE SİLME -->
-            <Grid Grid.Row="4" Margin="10,0">
+            <Grid Grid.Row="6" Margin="10,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>

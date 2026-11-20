@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using NotKosem.Models;
 using NotKosem.Services;
 
@@ -25,23 +26,14 @@ namespace NotKosem
 
             try
             {
-                // Kayıtlı notları yükle.
                 _notes = NoteStorageService.LoadNotes();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    "Notlar yüklenirken bir hata oluştu.\n" +
-                    "Mevcut kayıt dosyasını kontrol et.\n\n" +
-                    ex.Message,
-                    "Yükleme Hatası",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
+                    "Notlar yüklenirken hata oluştu:\n" + ex.Message);
 
                 _notes = new ObservableCollection<Note>();
-
-                // Hatalı kayıt dosyasının üzerine yazılmasını önle.
                 _storageReady = false;
             }
 
@@ -57,7 +49,6 @@ namespace NotKosem
             }
         }
 
-        // Yeni not oluşturur.
         private void CreateNewNote()
         {
             Note newNote = new Note();
@@ -71,7 +62,6 @@ namespace NotKosem
             SaveNotes();
         }
 
-        // Seçilen notu ekrana yükler.
         private void LoadNote(Note note)
         {
             _isLoadingNote = true;
@@ -79,15 +69,57 @@ namespace NotKosem
             _currentNote = note;
 
             NoteTitleTextBox.Text = note.Title;
-
             NoteTextBox.Text = note.Content;
+
+            MainBorder.Background = new SolidColorBrush(
+                (Color)ColorConverter.ConvertFromString(
+                    note.BackgroundColor));
+
+            MainBorder.Opacity = note.Opacity;
+            OpacitySlider.Value = note.Opacity;
+
+            OpacityValueText.Text =
+                $"%{Math.Round(note.Opacity * 100)}";
+
+            SelectColor(note.BackgroundColor);
 
             UpdateNoteCount();
 
             _isLoadingNote = false;
         }
 
-        // Not sayısını günceller.
+        private void OpacitySlider_ValueChanged(
+            object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_isLoadingNote || _currentNote == null)
+                return;
+
+            double opacity = OpacitySlider.Value;
+
+            MainBorder.Opacity = opacity;
+
+            _currentNote.Opacity = opacity;
+
+            OpacityValueText.Text =
+                $"%{Math.Round(opacity * 100)}";
+
+            SaveNotes();
+        }
+
+        private void SelectColor(string color)
+        {
+            foreach (ComboBoxItem item in ColorSelector.Items)
+            {
+                if (item.Tag?.ToString() == color)
+                {
+                    ColorSelector.SelectedItem = item;
+                    return;
+                }
+            }
+
+            ColorSelector.SelectedIndex = 0;
+        }
+
         private void UpdateNoteCount()
         {
             int currentIndex = NoteList.SelectedIndex + 1;
@@ -96,7 +128,6 @@ namespace NotKosem
                 $"Not {currentIndex} / {_notes.Count}";
         }
 
-        // Notları kaydeder.
         private void SaveNotes()
         {
             if (!_storageReady)
@@ -109,22 +140,16 @@ namespace NotKosem
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    "Notlar kaydedilirken hata oluştu:\n" + ex.Message,
-                    "Kayıt Hatası",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
+                    "Kayıt hatası:\n" + ex.Message);
             }
         }
 
-        // Yeni not butonu.
         private void NewNoteButton_Click(
             object sender, RoutedEventArgs e)
         {
             CreateNewNote();
         }
 
-        // Not listesinde seçim değiştiğinde çalışır.
         private void NoteList_SelectionChanged(
             object sender, SelectionChangedEventArgs e)
         {
@@ -134,7 +159,6 @@ namespace NotKosem
             }
         }
 
-        // Not başlığı değiştiğinde çalışır.
         private void NoteTitleTextBox_TextChanged(
             object sender, TextChangedEventArgs e)
         {
@@ -146,7 +170,6 @@ namespace NotKosem
             SaveNotes();
         }
 
-        // Not içeriği değiştiğinde çalışır.
         private void NoteTextBox_TextChanged(
             object sender, TextChangedEventArgs e)
         {
@@ -158,7 +181,41 @@ namespace NotKosem
             SaveNotes();
         }
 
-        // Önceki nota geçer.
+        private void ColorSelector_SelectionChanged(
+            object sender, SelectionChangedEventArgs e)
+        {
+            if (_isLoadingNote || _currentNote == null)
+                return;
+
+            if (ColorSelector.SelectedItem is ComboBoxItem item)
+            {
+                string? color = item.Tag?.ToString();
+
+                if (color == null)
+                    return;
+
+                _currentNote.BackgroundColor = color;
+
+                MainBorder.Background = new SolidColorBrush(
+                    (Color)ColorConverter.ConvertFromString(color));
+
+                SaveNotes();
+            }
+        }
+
+        private void ResetOpacityButton_Click(
+            object sender, RoutedEventArgs e)
+        {
+            if (_currentNote == null)
+                return;
+
+            _currentNote.Opacity = 1.0;
+
+            MainBorder.Opacity = 1.0;
+
+            SaveNotes();
+        }
+
         private void PreviousNoteButton_Click(
             object sender, RoutedEventArgs e)
         {
@@ -168,7 +225,6 @@ namespace NotKosem
             }
         }
 
-        // Sonraki nota geçer.
         private void NextNoteButton_Click(
             object sender, RoutedEventArgs e)
         {
@@ -178,7 +234,6 @@ namespace NotKosem
             }
         }
 
-        // Seçili notu siler.
         private void DeleteNoteButton_Click(
             object sender, RoutedEventArgs e)
         {
@@ -191,8 +246,7 @@ namespace NotKosem
                 "Bu notu silmek istediğine emin misin?",
                 "Not Sil",
                 MessageBoxButton.YesNo,
-                MessageBoxImage.Question
-            );
+                MessageBoxImage.Question);
 
             if (result != MessageBoxResult.Yes)
                 return;
@@ -210,7 +264,6 @@ namespace NotKosem
             NoteList.SelectedIndex = 0;
         }
 
-        // Başlık alanından pencereyi sürükler.
         private void Header_MouseLeftButtonDown(
             object sender, MouseButtonEventArgs e)
         {
@@ -220,14 +273,12 @@ namespace NotKosem
             }
         }
 
-        // Pencereyi kapatır.
         private void CloseButton_Click(
             object sender, RoutedEventArgs e)
         {
             Close();
         }
 
-        // Pencerenin üstte kalma özelliğini değiştirir.
         private void PinButton_Click(
             object sender, RoutedEventArgs e)
         {

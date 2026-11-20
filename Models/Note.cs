@@ -7,18 +7,15 @@ namespace NotKosem.Models
 {
     public class Note : INotifyPropertyChanged
     {
-        // Notun benzersiz kimliği.
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        // Notun oluşturulma tarihi.
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        // Not başlığı.
         private string _title = "Yeni Not";
 
         public string Title
         {
-            get { return _title; }
+            get => _title;
             set
             {
                 if (_title != value)
@@ -29,12 +26,11 @@ namespace NotKosem.Models
             }
         }
 
-        // Not içeriği.
         private string _content = "";
 
         public string Content
         {
-            get { return _content; }
+            get => _content;
             set
             {
                 if (_content != value)
@@ -45,7 +41,36 @@ namespace NotKosem.Models
             }
         }
 
-        // Değişiklik olduğunda arayüze haber verir.
+        private string _backgroundColor = "#FFF2C6";
+
+        public string BackgroundColor
+        {
+            get => _backgroundColor;
+            set
+            {
+                if (_backgroundColor != value)
+                {
+                    _backgroundColor = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private double _opacity = 1.0;
+
+        public double Opacity
+        {
+            get => _opacity;
+            set
+            {
+                if (_opacity != value)
+                {
+                    _opacity = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         protected void OnPropertyChanged(
