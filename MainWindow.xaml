@@ -370,25 +370,28 @@
                     <StackPanel Orientation="Horizontal"
                                 VerticalAlignment="Center">
 
-                        <Button Content="B"
-                                Width="30"
-                                FontWeight="Bold"
-                                Padding="2"
-                                Click="BoldButton_Click"
-                                ToolTip="Kalın"/>
+                        <Button x:Name="BoldButton"
+        Content="B"
+        Width="30"
+        FontWeight="Bold"
+        Padding="2"
+        Click="BoldButton_Click"
+        ToolTip="Kalın"/>
 
-                        <Button Content="I"
-                                Width="30"
-                                FontStyle="Italic"
-                                Padding="2"
-                                Click="ItalicButton_Click"
-                                ToolTip="İtalik"/>
+                        <Button x:Name="ItalicButton"
+        Content="I"
+        Width="30"
+        FontStyle="Italic"
+        Padding="2"
+        Click="ItalicButton_Click"
+        ToolTip="İtalik"/>
 
-                        <Button Content="U"
-                                Width="30"
-                                Padding="2"
-                                Click="UnderlineButton_Click"
-                                ToolTip="Altı çizili"/>
+                        <Button x:Name="UnderlineButton"
+        Content="U"
+        Width="30"
+        Padding="2"
+        Click="UnderlineButton_Click"
+        ToolTip="Altı çizili"/>
                     </StackPanel>
 
                     <ComboBox x:Name="FontFamilySelector"
@@ -461,6 +464,7 @@
                          Background="#20FFFFFF"
                          BorderThickness="0"
                          VerticalScrollBarVisibility="Auto"
+                         SelectionChanged="NoteRichTextBox_SelectionChanged"
                          HorizontalScrollBarVisibility="Disabled"
                          TextChanged="NoteRichTextBox_TextChanged"
                          AcceptsTab="True">

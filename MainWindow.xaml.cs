@@ -754,14 +754,16 @@ namespace NotKosem
         // ----------------------------------------------------
 
         private void BoldButton_Click(
-            object sender,
-            RoutedEventArgs e)
+    object sender,
+    RoutedEventArgs e)
         {
             NoteRichTextBox.Focus();
 
             EditingCommands.ToggleBold.Execute(
                 null,
                 NoteRichTextBox);
+
+            UpdateFormattingButtons();
         }
 
         private void ItalicButton_Click(
@@ -773,6 +775,8 @@ namespace NotKosem
             EditingCommands.ToggleItalic.Execute(
                 null,
                 NoteRichTextBox);
+
+            UpdateFormattingButtons();
         }
 
         private void UnderlineButton_Click(
@@ -784,6 +788,69 @@ namespace NotKosem
             EditingCommands.ToggleUnderline.Execute(
                 null,
                 NoteRichTextBox);
+
+            UpdateFormattingButtons();
+        }
+
+        private void NoteRichTextBox_SelectionChanged(
+    object sender,
+    RoutedEventArgs e)
+        {
+            UpdateFormattingButtons();
+        }
+
+        private void UpdateFormattingButtons()
+        {
+            if (NoteRichTextBox == null ||
+                BoldButton == null ||
+                ItalicButton == null ||
+                UnderlineButton == null)
+                return;
+
+            object bold = NoteRichTextBox.Selection.GetPropertyValue(
+                TextElement.FontWeightProperty);
+
+            object italic = NoteRichTextBox.Selection.GetPropertyValue(
+                TextElement.FontStyleProperty);
+
+            object underline = NoteRichTextBox.Selection.GetPropertyValue(
+                Inline.TextDecorationsProperty);
+
+            SetFormattingButton(
+                BoldButton,
+                bold is FontWeight fw && fw == FontWeights.Bold);
+
+            SetFormattingButton(
+                ItalicButton,
+                italic is System.Windows.FontStyle fs && fs == FontStyles.Italic);
+
+            bool isUnderline = false;
+
+            if (underline is TextDecorationCollection decorations)
+            {
+                isUnderline = decorations.Count > 0;
+            }
+
+            SetFormattingButton(
+                UnderlineButton,
+                isUnderline);
+        }
+
+        private void SetFormattingButton(
+            Button button,
+            bool isActive)
+        {
+            button.Background = new SolidColorBrush(
+                (Color)ColorConverter.ConvertFromString(
+                    isActive ? "#D6C49D" : "#FFFDF8"));
+
+            button.BorderBrush = new SolidColorBrush(
+                (Color)ColorConverter.ConvertFromString(
+                    isActive ? "#A9956C" : "#D8CBAA"));
+
+            button.Foreground = new SolidColorBrush(
+                (Color)ColorConverter.ConvertFromString(
+                    isActive ? "#302719" : "#5C5132"));
         }
 
         private void FontFamilySelector_SelectionChanged(
