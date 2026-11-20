@@ -1,23 +1,37 @@
-﻿using System.Text;
+﻿
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
-namespace NotKosem;
-
-/// <summary>
-/// Interaction logic for MainWindow.xaml
-/// </summary>
-public partial class MainWindow : Window
+namespace NotKosem
 {
-    public MainWindow()
+    public partial class MainWindow : Window
     {
-        InitializeComponent();
+        // Pencere oluşturulduğunda çalışır.
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
+        // Başlık alanına basılı tutarak pencereyi sürüklememizi sağlar.
+        private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // Mouse sol tuşu basılıysa pencereyi sürükle.
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                DragMove();
+            }
+        }
+
+        // Kapatma butonuna tıklandığında pencereyi kapatır.
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
+        // Pencerenin diğer pencerelerin üzerinde kalma özelliğini açıp kapatır.
+        private void PinButton_Click(object sender, RoutedEventArgs e)
+        {
+            Topmost = !Topmost;
+        }
     }
 }
