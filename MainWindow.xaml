@@ -11,6 +11,7 @@
         AllowsTransparency="True"
         Background="Transparent"
         Closing="MainWindow_Closing"
+        Icon="Assets/NotKosem.ico"
         Topmost="False">
 
     <Window.Resources>
