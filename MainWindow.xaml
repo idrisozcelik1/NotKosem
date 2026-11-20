@@ -10,14 +10,15 @@
         ResizeMode="CanResizeWithGrip"
         AllowsTransparency="True"
         Background="Transparent"
+        Closing="MainWindow_Closing"
         Topmost="True">
 
     <Border x:Name="MainBorder"
-            Background="#FFF2C6"
-            Opacity="1"
-            CornerRadius="14"
-            BorderBrush="#E4D69E"
-            BorderThickness="1">
+        Background="#FFF2C6"
+        Opacity="1"
+        CornerRadius="14"
+        BorderBrush="#D6D6D6"
+        BorderThickness="1">
 
         <Grid>
             <Grid.RowDefinitions>
@@ -32,7 +33,7 @@
 
             <!-- ÜST BAŞLIK -->
             <Border Grid.Row="0"
-                    Background="#FFE8A3"
+                    Background="#F4F1E8"
                     CornerRadius="14,14,0,0"
                     MouseLeftButtonDown="Header_MouseLeftButtonDown">
 
