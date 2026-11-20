@@ -259,24 +259,25 @@ namespace NotKosem
         }
 
         private void MainWindow_Closing(
-            object? sender,
-            CancelEventArgs e)
+    object? sender,
+    CancelEventArgs e)
         {
-            if (!_isExiting)
-            {
-                e.Cancel = true;
-                Hide();
-            }
-            else
-            {
-                _reminderTimer?.Stop();
+            _isExiting = true;
 
-                if (_trayIcon != null)
-                {
-                    _trayIcon.Visible = false;
-                    _trayIcon.Dispose();
-                    _trayIcon = null;
-                }
+            _reminderTimer?.Stop();
+
+            foreach (var widget in _widgetWindows.Values.ToList())
+            {
+                widget.Close();
+            }
+
+            SaveNotes();
+
+            if (_trayIcon != null)
+            {
+                _trayIcon.Visible = false;
+                _trayIcon.Dispose();
+                _trayIcon = null;
             }
         }
 
@@ -1124,10 +1125,10 @@ namespace NotKosem
         }
 
         private void CloseButton_Click(
-            object sender,
-            RoutedEventArgs e)
+    object sender,
+    RoutedEventArgs e)
         {
-            Hide();
+            Close();
         }
     }
 }

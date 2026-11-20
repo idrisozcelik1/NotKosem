@@ -12,6 +12,7 @@
         Background="Transparent"
         Closing="MainWindow_Closing"
         Icon="Assets/NotKosem.ico"
+        WindowStartupLocation="CenterScreen"
         Topmost="False">
 
     <Window.Resources>
