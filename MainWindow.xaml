@@ -2,340 +2,499 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="NotKöşem"
-        Width="360"
-        Height="500"
-        MinWidth="300"
-        MinHeight="400"
+        Width="410"
+        Height="680"
+        MinWidth="340"
+        MinHeight="520"
         WindowStyle="None"
         ResizeMode="CanResizeWithGrip"
         AllowsTransparency="True"
         Background="Transparent"
         Closing="MainWindow_Closing"
-        Topmost="True">
+        Topmost="False">
 
-	<Border x:Name="MainBorder"
-            Background="#FFF2C6"
-            Opacity="1"
-            CornerRadius="14"
-            BorderBrush="#D6D6D6"
-            BorderThickness="1">
+    <Window.Resources>
 
-		<Grid>
-			<Grid.RowDefinitions>
-				<RowDefinition Height="48"/>
-				<RowDefinition Height="42"/>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition Height="*"/>
-				<RowDefinition Height="35"/>
-			</Grid.RowDefinitions>
+        <Style TargetType="{x:Type Button}">
+            <Setter Property="Background" Value="#FFFDF8"/>
+            <Setter Property="Foreground" Value="#5C5132"/>
+            <Setter Property="BorderBrush" Value="#D8CBAA"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="9,5"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border x:Name="ButtonBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
+                        </Border>
 
-			<!-- ÜST BÖLÜM -->
-			<Border Grid.Row="0"
-                    Background="#F4F1E8"
-                    CornerRadius="14,14,0,0"
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Background"
+                                        Value="#F0E8D5"/>
+                            </Trigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Background"
+                                        Value="#E5D8B9"/>
+                            </Trigger>
+
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="ButtonBorder"
+                                        Property="Opacity"
+                                        Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </Window.Resources>
+
+    <Border x:Name="MainBorder"
+            Background="#FFFFFF"
+            BorderBrush="#9C8B67"
+            BorderThickness="2"
+            CornerRadius="15"
+            ClipToBounds="True">
+
+        <Grid Margin="5">
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="42"/>
+                <RowDefinition Height="43"/>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="42"/>
+                <RowDefinition Height="35"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="34"/>
+            </Grid.RowDefinitions>
+
+            <!-- ÜST BAŞLIK -->
+            <Border Grid.Row="0"
+                    Background="#F4EEDC"
+                    CornerRadius="10"
                     MouseLeftButtonDown="Header_MouseLeftButtonDown">
 
-				<Grid Margin="10,5">
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="*"/>
-						<ColumnDefinition Width="40"/>
-						<ColumnDefinition Width="35"/>
-						<ColumnDefinition Width="30"/>
-					</Grid.ColumnDefinitions>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-					<ComboBox x:Name="NoteList"
-                              Grid.Column="0"
-                              DisplayMemberPath="Title"
-                              SelectionChanged="NoteList_SelectionChanged"
-                              VerticalContentAlignment="Center"
-                              ToolTip="Notlarım"/>
+                    <TextBlock Text="NotKöşem"
+                               Margin="12,0"
+                               VerticalAlignment="Center"
+                               FontSize="15"
+                               FontWeight="Bold"
+                               Foreground="#5C5132"/>
 
-					<Button Grid.Column="1"
-                            Content="+"
-                            Margin="5,0,0,0"
-                            FontSize="21"
-                            FontWeight="Bold"
-                            Click="NewNoteButton_Click"
-                            ToolTip="Yeni not oluştur"/>
+                    <StackPanel Grid.Column="1"
+            Orientation="Horizontal"
+            VerticalAlignment="Center">
 
-					<Button Grid.Column="2"
-                            Content="📌"
-                            Click="PinButton_Click"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            ToolTip="Üstte tut"/>
+                        <Button x:Name="PinButton"
+            Content="📌"
+            Width="34"
+            Height="30"
+            Padding="2"
+            Click="PinButton_Click"
+            ToolTip="Pencereyi sabitle"/>
 
-					<Button Grid.Column="3"
-                            Content="×"
-                            FontSize="20"
-                            Click="CloseButton_Click"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Foreground="#6A5235"
-                            ToolTip="Gizle"/>
-				</Grid>
-			</Border>
+                        <Button Content="–"
+            Width="34"
+            Height="30"
+            Padding="2"
+            FontSize="19"
+            Click="MinimizeButton_Click"
+            ToolTip="Görev çubuğuna küçült"/>
 
-			<!-- AYAR İKONLARI -->
-			<Grid Grid.Row="1"
-                  Margin="10,3">
+                        <Button Content="×"
+            Width="34"
+            Height="30"
+            Padding="2"
+            FontSize="19"
+            Click="CloseButton_Click"
+            ToolTip="Sistem tepsisine gizle"/>
 
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="*"/>
-					<ColumnDefinition Width="*"/>
-					<ColumnDefinition Width="*"/>
-					<ColumnDefinition Width="*"/>
-				</Grid.ColumnDefinitions>
+                    </StackPanel>
+                </Grid>
+            </Border>
 
-				<Button Grid.Column="0"
-                        Content="🎨"
-                        FontSize="17"
-                        Click="ColorSettingsButton_Click"
-                        ToolTip="Not rengi"/>
+            <!-- NOT SEÇİMİ -->
+            <Grid Grid.Row="1" Margin="5,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="42"/>
+                </Grid.ColumnDefinitions>
 
-				<Button Grid.Column="1"
-                        Content="◐"
-                        FontSize="19"
-                        Click="OpacitySettingsButton_Click"
-                        ToolTip="Saydamlık"/>
+                <ComboBox x:Name="NoteList"
+                          Grid.Column="0"
+                          DisplayMemberPath="Title"
+                          VerticalContentAlignment="Center"
+                          SelectionChanged="NoteList_SelectionChanged"
+                          ToolTip="Notlarım"/>
 
-				<Button Grid.Column="2"
-                        Content="🔔"
-                        FontSize="16"
-                        Click="ReminderSettingsButton_Click"
-                        ToolTip="Hatırlatıcı"/>
+                <Button Grid.Column="1"
+                        Content="+"
+                        FontSize="20"
+                        FontWeight="Bold"
+                        Margin="5,0,0,0"
+                        Padding="2"
+                        Click="NewNoteButton_Click"
+                        ToolTip="Yeni not oluştur"/>
+            </Grid>
 
-				<Button Grid.Column="3"
-                        Content="▦"
-                        FontSize="19"
-                        Click="CategorySettingsButton_Click"
-                        ToolTip="Kategori"/>
-			</Grid>
+            <!-- AYAR İKONLARI -->
+            <Grid Grid.Row="2" Margin="5,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-			<!-- AYAR PANELİ -->
-			<Border x:Name="SettingsPanel"
-                    Grid.Row="2"
-                    Margin="10,3,10,6"
-                    Padding="10"
+                <Button Grid.Column="0"
+                        Content="🎨 Görünüm"
+                        Click="ToggleAppearancePanel_Click"/>
+
+                <Button Grid.Column="1"
+                        Content="🏷 Kategori"
+                        Click="ToggleCategoryPanel_Click"/>
+
+                <Button Grid.Column="2"
+                        Content="⏰ Hatırlatıcı"
+                        Click="ToggleReminderPanel_Click"/>
+            </Grid>
+
+            <!-- GÖRÜNÜM AYARLARI -->
+            <Border x:Name="AppearancePanel"
+                    Grid.Row="3"
+                    Margin="7,3"
+                    Padding="8"
                     Background="#40FFFFFF"
-                    CornerRadius="8"
+                    CornerRadius="9"
                     Visibility="Collapsed">
 
-				<Grid>
+                <StackPanel>
 
-					<!-- RENK AYARI -->
-					<StackPanel x:Name="ColorSettingsPanel"
-                                Visibility="Collapsed">
+                    <TextBlock Text="Not Rengi"
+                               FontWeight="SemiBold"
+                               Foreground="#5C5132"
+                               Margin="0,0,0,5"/>
 
-						<TextBlock Text="Not Rengi"
-                                   FontWeight="SemiBold"
-                                   Foreground="#5C5132"
-                                   Margin="0,0,0,7"/>
+                    <ComboBox x:Name="ColorSelector"
+                              SelectedIndex="0"
+                              SelectionChanged="ColorSelector_SelectionChanged">
 
-						<ComboBox x:Name="ColorSelector"
-                                  SelectedIndex="0"
-                                  SelectionChanged="ColorSelector_SelectionChanged">
+                        <ComboBoxItem Content="Sarı" Tag="#FFF2C6"/>
+                        <ComboBoxItem Content="Mavi" Tag="#D9EDFF"/>
+                        <ComboBoxItem Content="Yeşil" Tag="#DDF5DC"/>
+                        <ComboBoxItem Content="Pembe" Tag="#FFE0E8"/>
+                        <ComboBoxItem Content="Mor" Tag="#EAE0FF"/>
+                        <ComboBoxItem Content="Beyaz" Tag="#FFFFFF"/>
 
-							<ComboBoxItem Content="Sarı"
-                                          Tag="#FFF2C6"/>
+                    </ComboBox>
 
-							<ComboBoxItem Content="Mavi"
-                                          Tag="#D9EDFF"/>
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="45"/>
+                        </Grid.ColumnDefinitions>
 
-							<ComboBoxItem Content="Yeşil"
-                                          Tag="#DDF5DC"/>
+                        <TextBlock Text="Saydamlık"
+                                   VerticalAlignment="Center"
+                                   FontSize="11"/>
 
-							<ComboBoxItem Content="Pembe"
-                                          Tag="#FFE0E8"/>
-
-							<ComboBoxItem Content="Mor"
-                                          Tag="#EAE0FF"/>
-
-							<ComboBoxItem Content="Beyaz"
-                                          Tag="#FFFFFF"/>
-						</ComboBox>
-					</StackPanel>
-
-					<!-- SAYDAMLIK AYARI -->
-					<StackPanel x:Name="OpacitySettingsPanel"
-                                Visibility="Collapsed">
-
-						<Grid>
-							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="*"/>
-								<ColumnDefinition Width="45"/>
-							</Grid.ColumnDefinitions>
-
-							<TextBlock Text="Saydamlık"
-                                       FontWeight="SemiBold"
-                                       Foreground="#5C5132"
-                                       VerticalAlignment="Center"/>
-
-							<TextBlock x:Name="OpacityValueText"
-                                       Grid.Column="1"
-                                       Text="%100"
-                                       HorizontalAlignment="Right"
-                                       VerticalAlignment="Center"/>
-						</Grid>
-
-						<Slider x:Name="OpacitySlider"
+                        <Slider x:Name="OpacitySlider"
+                                Grid.Column="1"
                                 Minimum="0.3"
                                 Maximum="1"
                                 Value="1"
-                                Margin="0,8,0,0"
+                                Margin="8,0"
+                                VerticalAlignment="Center"
                                 ValueChanged="OpacitySlider_ValueChanged"/>
 
-						<Button Content="Saydamlığı Sıfırla"
-                                Margin="0,7,0,0"
-                                Click="ResetOpacityButton_Click"/>
-					</StackPanel>
+                        <TextBlock x:Name="OpacityValueText"
+                                   Grid.Column="2"
+                                   Text="%100"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Right"/>
+                    </Grid>
 
-					<!-- HATIRLATICI AYARI -->
-					<StackPanel x:Name="ReminderSettingsPanel"
-                                Visibility="Collapsed">
+                </StackPanel>
+            </Border>
 
-						<TextBlock Text="Hatırlatıcı"
-                                   FontWeight="SemiBold"
-                                   Foreground="#5C5132"
-                                   Margin="0,0,0,7"/>
+            <!-- KATEGORİ AYARLARI -->
+            <Border x:Name="CategoryPanel"
+                    Grid.Row="4"
+                    Margin="7,3"
+                    Padding="8"
+                    Background="#40FFFFFF"
+                    CornerRadius="9"
+                    Visibility="Collapsed">
 
-						<Grid>
-							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="*"/>
-								<ColumnDefinition Width="85"/>
-							</Grid.ColumnDefinitions>
+                <StackPanel>
 
-							<DatePicker x:Name="ReminderDatePicker"
-                                        Grid.Column="0"
-                                        SelectedDateFormat="Short"/>
+                    <TextBlock Text="Not Kategorisi"
+                               FontWeight="SemiBold"
+                               Foreground="#5C5132"
+                               Margin="0,0,0,5"/>
 
-							<TextBox x:Name="ReminderTimeTextBox"
-                                     Grid.Column="1"
-                                     Text="09:00"
-                                     Margin="5,0,0,0"
-                                     VerticalContentAlignment="Center"
-                                     HorizontalContentAlignment="Center"
-                                     ToolTip="Saat (Örnek: 14:30)"/>
-						</Grid>
+                    <ComboBox x:Name="CategorySelector"
+                              SelectionChanged="CategorySelector_SelectionChanged"/>
 
-						<Grid Margin="0,7,0,0">
-							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="*"/>
-								<ColumnDefinition Width="*"/>
-							</Grid.ColumnDefinitions>
+                    <Grid Margin="0,7,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
 
-							<Button Grid.Column="0"
-                                    Content="Kaydet"
-                                    Margin="0,0,3,0"
-                                    Click="SetReminderButton_Click"/>
+                        <TextBox x:Name="NewCategoryTextBox"
+                                 Grid.Column="0"
+                                 Height="30"
+                                 Padding="6,3"
+                                 VerticalContentAlignment="Center"
+                                 ToolTip="Yeni kategori adı"
+                                 Margin="0,0,4,0"/>
 
-							<Button Grid.Column="1"
-                                    Content="İptal Et"
-                                    Margin="3,0,0,0"
-                                    Click="CancelReminderButton_Click"/>
-						</Grid>
+                        <Button Grid.Column="1"
+                                Content="Ekle"
+                                Click="AddCategoryButton_Click"
+                                Padding="12,4"/>
 
-						<TextBlock x:Name="ReminderStatusText"
-                                   Text="Hatırlatıcı ayarlanmadı."
-                                   FontSize="10"
-                                   Foreground="#806B42"
-                                   Margin="0,6,0,0"
-                                   TextWrapping="Wrap"/>
-					</StackPanel>
+                        <Button Grid.Column="2"
+                                Content="Sil"
+                                Foreground="#A33B32"
+                                Click="DeleteCategoryButton_Click"
+                                Padding="12,4"/>
+                    </Grid>
 
-					<!-- KATEGORİ AYARI -->
-					<StackPanel x:Name="CategorySettingsPanel"
-                                Visibility="Collapsed">
+                </StackPanel>
+            </Border>
 
-						<TextBlock Text="Not Kategorisi"
-                                   FontWeight="SemiBold"
-                                   Foreground="#5C5132"
-                                   Margin="0,0,0,7"/>
+            <!-- HATIRLATICI AYARLARI -->
+            <Border x:Name="ReminderPanel"
+                    Grid.Row="5"
+                    Margin="7,3"
+                    Padding="8"
+                    Background="#40FFFFFF"
+                    CornerRadius="9"
+                    Visibility="Collapsed">
 
-						<ComboBox x:Name="CategorySelector"
-                                  SelectionChanged="CategorySelector_SelectionChanged"/>
+                <StackPanel>
 
-						<Grid Margin="0,7,0,0">
-							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="*"/>
-								<ColumnDefinition Width="85"/>
-							</Grid.ColumnDefinitions>
+                    <TextBlock Text="Hatırlatıcı"
+                               FontWeight="SemiBold"
+                               Foreground="#5C5132"
+                               Margin="0,0,0,5"/>
 
-							<TextBox x:Name="NewCategoryTextBox"
-                                     Grid.Column="0"
-                                     VerticalContentAlignment="Center"
-                                     ToolTip="Yeni kategori adı"
-                                     Margin="0,0,5,0"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="85"/>
+                        </Grid.ColumnDefinitions>
 
-							<Button Grid.Column="1"
-                                    Content="Ekle"
-                                    Click="AddCategoryButton_Click"/>
-						</Grid>
-					</StackPanel>
+                        <DatePicker x:Name="ReminderDatePicker"
+                                    Grid.Column="0"
+                                    SelectedDateFormat="Short"/>
 
-				</Grid>
-			</Border>
+                        <TextBox x:Name="ReminderTimeTextBox"
+                                 Grid.Column="1"
+                                 Text="09:00"
+                                 Margin="5,0,0,0"
+                                 Height="30"
+                                 VerticalContentAlignment="Center"
+                                 HorizontalContentAlignment="Center"/>
+                    </Grid>
 
-			<!-- NOT ALANI -->
-			<Grid Grid.Row="3"
-                  Margin="14,8,14,5">
+                    <Grid Margin="0,5,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-				<Grid.RowDefinitions>
-					<RowDefinition Height="35"/>
-					<RowDefinition Height="*"/>
-				</Grid.RowDefinitions>
+                        <Button Grid.Column="0"
+                                Content="Hatırlatıcı Ekle"
+                                Click="SetReminderButton_Click"/>
 
-				<TextBox x:Name="NoteTitleTextBox"
-                         Grid.Row="0"
-                         FontSize="16"
-                         FontWeight="SemiBold"
-                         Foreground="#5C5132"
-                         Background="Transparent"
-                         BorderThickness="0,0,0,1"
-                         BorderBrush="#D8C578"
-                         VerticalContentAlignment="Center"
-                         TextChanged="NoteTitleTextBox_TextChanged"
-                         ToolTip="Not başlığı"/>
+                        <Button Grid.Column="1"
+                                Content="İptal Et"
+                                Click="CancelReminderButton_Click"/>
+                    </Grid>
 
-				<TextBox x:Name="NoteTextBox"
-                         Grid.Row="1"
-                         Margin="0,10,0,0"
+                    <TextBlock x:Name="ReminderStatusText"
+                               Text="Hatırlatıcı ayarlanmadı."
+                               FontSize="10"
+                               Foreground="#806B42"
+                               Margin="2,4,0,0"
+                               TextWrapping="Wrap"/>
+
+                </StackPanel>
+            </Border>
+
+            <!-- YAZI BİÇİMLENDİRME -->
+            <Border Grid.Row="6"
+                    Margin="5,3"
+                    Background="#40FFFFFF"
+                    CornerRadius="8"
+                    Padding="3">
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="65"/>
+                        <ColumnDefinition Width="75"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Center">
+
+                        <Button Content="B"
+                                Width="30"
+                                FontWeight="Bold"
+                                Padding="2"
+                                Click="BoldButton_Click"
+                                ToolTip="Kalın"/>
+
+                        <Button Content="I"
+                                Width="30"
+                                FontStyle="Italic"
+                                Padding="2"
+                                Click="ItalicButton_Click"
+                                ToolTip="İtalik"/>
+
+                        <Button Content="U"
+                                Width="30"
+                                Padding="2"
+                                Click="UnderlineButton_Click"
+                                ToolTip="Altı çizili"/>
+                    </StackPanel>
+
+                    <ComboBox x:Name="FontFamilySelector"
+                              Grid.Column="1"
+                              Margin="3,0"
+                              VerticalContentAlignment="Center"
+                              SelectionChanged="FontFamilySelector_SelectionChanged"
+                              ToolTip="Yazı tipi"/>
+
+                    <ComboBox x:Name="FontSizeSelector"
+                              Grid.Column="2"
+                              Margin="2,0"
+                              SelectedIndex="3"
+                              VerticalContentAlignment="Center"
+                              SelectionChanged="FontSizeSelector_SelectionChanged"
+                              ToolTip="Yazı boyutu">
+
+                        <ComboBoxItem Content="10"/>
+                        <ComboBoxItem Content="12"/>
+                        <ComboBoxItem Content="14"/>
+                        <ComboBoxItem Content="16"/>
+                        <ComboBoxItem Content="18"/>
+                        <ComboBoxItem Content="20"/>
+                        <ComboBoxItem Content="24"/>
+                        <ComboBoxItem Content="28"/>
+                        <ComboBoxItem Content="32"/>
+
+                    </ComboBox>
+
+                    <ComboBox x:Name="TextColorSelector"
+                              Grid.Column="3"
+                              Margin="2,0"
+                              SelectedIndex="0"
+                              VerticalContentAlignment="Center"
+                              SelectionChanged="TextColorSelector_SelectionChanged"
+                              ToolTip="Yazı rengi">
+
+                        <ComboBoxItem Content="Siyah" Tag="#000000"/>
+                        <ComboBoxItem Content="Kırmızı" Tag="#D32F2F"/>
+                        <ComboBoxItem Content="Mavi" Tag="#1565C0"/>
+                        <ComboBoxItem Content="Yeşil" Tag="#2E7D32"/>
+                        <ComboBoxItem Content="Mor" Tag="#7B1FA2"/>
+                        <ComboBoxItem Content="Turuncu" Tag="#EF6C00"/>
+
+                    </ComboBox>
+                </Grid>
+            </Border>
+
+            <!-- NOT BAŞLIĞI -->
+            <TextBox x:Name="NoteTitleTextBox"
+                     Grid.Row="7"
+                     Margin="10,3"
+                     FontSize="16"
+                     FontWeight="SemiBold"
+                     Foreground="#5C5132"
+                     Background="Transparent"
+                     BorderThickness="0,0,0,1"
+                     BorderBrush="#D8C578"
+                     VerticalContentAlignment="Center"
+                     TextChanged="NoteTitleTextBox_TextChanged"
+                     ToolTip="Not başlığı"/>
+
+            <!-- NOT İÇERİĞİ -->
+            <RichTextBox x:Name="NoteRichTextBox"
+                         Grid.Row="8"
+                         Margin="10,5"
+                         Padding="5"
                          FontSize="14"
                          Foreground="#5C5132"
-                         Background="Transparent"
+                         Background="#20FFFFFF"
                          BorderThickness="0"
-                         TextWrapping="Wrap"
-                         AcceptsReturn="True"
-                         AcceptsTab="True"
                          VerticalScrollBarVisibility="Auto"
                          HorizontalScrollBarVisibility="Disabled"
-                         TextChanged="NoteTextBox_TextChanged"
-                         Padding="0"/>
-			</Grid>
+                         TextChanged="NoteRichTextBox_TextChanged"
+                         AcceptsTab="True">
 
-			<!-- ALT BÖLÜM -->
-			<Grid Grid.Row="4"
-                  Margin="10,0">
+                <FlowDocument PagePadding="0">
+                    <Paragraph/>
+                </FlowDocument>
 
-				<Grid.ColumnDefinitions>
-					<ColumnDefinition Width="*"/>
-					<ColumnDefinition Width="Auto"/>
-				</Grid.ColumnDefinitions>
+            </RichTextBox>
 
-				<TextBlock x:Name="NoteCountText"
+            <!-- ALT BİLGİ -->
+            <Grid Grid.Row="9" Margin="7,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock x:Name="NoteCountText"
                            Text="Not 1 / 1"
-                           FontSize="11"
+                           VerticalAlignment="Center"
                            Foreground="#9B8755"
-                           VerticalAlignment="Center"/>
+                           FontSize="11"/>
 
-				<Button Grid.Column="1"
+                <Button Grid.Column="1"
                         Content="Sil"
-                        Click="DeleteNoteButton_Click"
-                        Padding="12,2"
                         Foreground="#A33B32"
-                        ToolTip="Bu notu sil"/>
-			</Grid>
+                        Click="DeleteNoteButton_Click"
+                        Padding="12,3"/>
 
-		</Grid>
-	</Border>
+                <Button Grid.Column="2"
+                        Content="Kaydet"
+                        Click="SaveNoteButton_Click"
+                        Padding="12,3"/>
+            </Grid>
+
+        </Grid>
+    </Border>
 </Window>

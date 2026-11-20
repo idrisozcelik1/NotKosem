@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -6,103 +7,80 @@ namespace NotKosem.Models
 {
     public class Note : INotifyPropertyChanged
     {
-        public Guid Id { get; set; } = Guid.NewGuid();
+        private string _title = "Yeni Not";
+        private string _content = string.Empty;
+        private string _backgroundColor = "#FFFFFF";
+        private double _opacity = 1.0;
+        private DateTime? _reminderAt;
+        private string _category = "Diğer";
+
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-        private string _title = "Yeni Not";
 
         public string Title
         {
             get => _title;
             set
             {
-                if (_title != value)
-                {
-                    _title = value;
-                    OnPropertyChanged();
-                }
+                _title = value;
+                OnPropertyChanged();
             }
         }
-
-        private string _content = "";
 
         public string Content
         {
             get => _content;
             set
             {
-                if (_content != value)
-                {
-                    _content = value;
-                    OnPropertyChanged();
-                }
+                _content = value;
+                OnPropertyChanged();
             }
         }
-
-        private string _backgroundColor = "#FFF2C6";
 
         public string BackgroundColor
         {
             get => _backgroundColor;
             set
             {
-                if (_backgroundColor != value)
-                {
-                    _backgroundColor = value;
-                    OnPropertyChanged();
-                }
+                _backgroundColor = value;
+                OnPropertyChanged();
             }
         }
-
-        private double _opacity = 1.0;
 
         public double Opacity
         {
             get => _opacity;
             set
             {
-                if (_opacity != value)
-                {
-                    _opacity = value;
-                    OnPropertyChanged();
-                }
+                _opacity = value;
+                OnPropertyChanged();
             }
         }
-
-        private DateTime? _reminderAt;
 
         public DateTime? ReminderAt
         {
             get => _reminderAt;
             set
             {
-                if (_reminderAt != value)
-                {
-                    _reminderAt = value;
-                    OnPropertyChanged();
-                }
+                _reminderAt = value;
+                OnPropertyChanged();
             }
         }
-
-        private string _category = "Diğer";
 
         public string Category
         {
             get => _category;
             set
             {
-                if (_category != value)
-                {
-                    _category = value;
-                    OnPropertyChanged();
-                }
+                _category = value;
+                OnPropertyChanged();
             }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected void OnPropertyChanged(
+        private void OnPropertyChanged(
             [CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(
