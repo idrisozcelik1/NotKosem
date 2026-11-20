@@ -61,6 +61,7 @@ namespace NotKosem
             }
         }
 
+
         private void InitializeTray()
         {
             _trayIcon = new System.Windows.Forms.NotifyIcon
@@ -73,9 +74,19 @@ namespace NotKosem
             var menu = new System.Windows.Forms.ContextMenuStrip();
 
             var openItem = new System.Windows.Forms.ToolStripMenuItem("NotKöşem'i Aç");
+            var startupItem = new System.Windows.Forms.ToolStripMenuItem("Windows ile başlat")
+            {
+                CheckOnClick = true,
+                Checked = IsStartupEnabled()
+            };
             var exitItem = new System.Windows.Forms.ToolStripMenuItem("Çıkış");
 
             openItem.Click += (sender, e) => ShowWindow();
+
+            startupItem.Click += (sender, e) =>
+            {
+                SetWindowsStartup(startupItem.Checked);
+            };
 
             exitItem.Click += (sender, e) =>
             {
@@ -92,12 +103,58 @@ namespace NotKosem
             };
 
             menu.Items.Add(openItem);
+            menu.Items.Add(startupItem);
             menu.Items.Add(exitItem);
 
             _trayIcon.ContextMenuStrip = menu;
 
             _trayIcon.DoubleClick += (sender, e) => ShowWindow();
         }
+
+        private bool IsStartupEnabled()
+        {
+            using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                @"Software\Microsoft\Windows\CurrentVersion\Run");
+
+            return key?.GetValue("NotKosem") != null;
+        }
+
+        private void SetWindowsStartup(bool enabled)
+        {
+            try
+            {
+                using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                    @"Software\Microsoft\Windows\CurrentVersion\Run", true)
+                    ?? Microsoft.Win32.Registry.CurrentUser.CreateSubKey(
+                        @"Software\Microsoft\Windows\CurrentVersion\Run");
+
+                if (key == null)
+                    throw new Exception("Windows başlangıç ayarlarına erişilemedi.");
+
+                if (enabled)
+                {
+                    string? exePath = Environment.ProcessPath;
+
+                    if (string.IsNullOrWhiteSpace(exePath))
+                        throw new Exception("Uygulama dosyasının yolu bulunamadı.");
+
+                    key.SetValue("NotKosem", $"\"{exePath}\"");
+                }
+                else
+                {
+                    key.DeleteValue("NotKosem", false);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Başlangıç ayarı değiştirilemedi:\n" + ex.Message,
+                    "NotKöşem",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+
 
         private void ShowWindow()
         {
