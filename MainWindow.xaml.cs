@@ -1,8 +1,8 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -15,7 +15,9 @@ namespace NotKosem
 {
     public partial class MainWindow : Window
     {
-        private ObservableCollection<Note> _notes;
+        private ObservableCollection<Note> _notes = new();
+
+        private ObservableCollection<string> _categories = new();
 
         private Note? _currentNote;
 
@@ -24,7 +26,7 @@ namespace NotKosem
         private bool _storageReady = true;
 
         private System.Windows.Forms.NotifyIcon? _trayIcon;
-        private DispatcherTimer _reminderTimer;
+        private DispatcherTimer? _reminderTimer;
 
         public MainWindow()
         {
@@ -46,6 +48,8 @@ namespace NotKosem
             }
 
             NoteList.ItemsSource = _notes;
+
+            InitializeCategories();
 
             if (_notes.Count == 0)
             {
@@ -76,12 +80,16 @@ namespace NotKosem
 
             var menu = new System.Windows.Forms.ContextMenuStrip();
 
-            var openItem = new System.Windows.Forms.ToolStripMenuItem("NotKöşem'i Aç");
-            var startupItem = new System.Windows.Forms.ToolStripMenuItem("Windows ile başlat")
+            var openItem = new System.Windows.Forms.ToolStripMenuItem(
+                "NotKöşem'i Aç");
+
+            var startupItem = new System.Windows.Forms.ToolStripMenuItem(
+                "Windows ile başlat")
             {
                 CheckOnClick = true,
                 Checked = IsStartupEnabled()
             };
+
             var exitItem = new System.Windows.Forms.ToolStripMenuItem("Çıkış");
 
             openItem.Click += (sender, e) => ShowWindow();
@@ -132,14 +140,16 @@ namespace NotKosem
                         @"Software\Microsoft\Windows\CurrentVersion\Run");
 
                 if (key == null)
-                    throw new Exception("Windows başlangıç ayarlarına erişilemedi.");
+                    throw new Exception(
+                        "Windows başlangıç ayarlarına erişilemedi.");
 
                 if (enabled)
                 {
                     string? exePath = Environment.ProcessPath;
 
                     if (string.IsNullOrWhiteSpace(exePath))
-                        throw new Exception("Uygulama dosyasının yolu bulunamadı.");
+                        throw new Exception(
+                            "Uygulama dosyasının yolu bulunamadı.");
 
                     key.SetValue("NotKosem", $"\"{exePath}\"");
                 }
@@ -190,14 +200,96 @@ namespace NotKosem
             }
         }
 
+        // KATEGORİ İŞLEMLERİ
+
+        private void InitializeCategories()
+        {
+            _categories.Clear();
+
+            _categories.Add("Kişisel");
+            _categories.Add("İş");
+            _categories.Add("Okul");
+            _categories.Add("Yazılım");
+            _categories.Add("Diğer");
+
+            foreach (Note note in _notes)
+            {
+                if (string.IsNullOrWhiteSpace(note.Category))
+                    note.Category = "Diğer";
+
+                if (!_categories.Contains(note.Category))
+                    _categories.Add(note.Category);
+            }
+
+            CategorySelector.ItemsSource = _categories;
+        }
+
+        private void AddCategoryButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            string category = NewCategoryTextBox.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(category))
+            {
+                MessageBox.Show("Lütfen kategori adı gir.");
+                return;
+            }
+
+            if (_categories.Any(
+                x => string.Equals(
+                    x,
+                    category,
+                    StringComparison.CurrentCultureIgnoreCase)))
+            {
+                MessageBox.Show("Bu kategori zaten mevcut.");
+                return;
+            }
+
+            _categories.Add(category);
+
+            if (_currentNote != null)
+            {
+                _currentNote.Category = category;
+                CategorySelector.SelectedItem = category;
+                SaveNotes();
+            }
+
+            NewCategoryTextBox.Clear();
+        }
+
+        private void CategorySelector_SelectionChanged(
+            object sender,
+            SelectionChangedEventArgs e)
+        {
+            if (_isLoadingNote || _currentNote == null)
+                return;
+
+            if (CategorySelector.SelectedItem is string category)
+            {
+                _currentNote.Category = category;
+                SaveNotes();
+            }
+        }
+
+        // NOT OLUŞTURMA VE YÜKLEME
+
         private void CreateNewNote()
         {
-            Note newNote = new Note();
+            Note newNote = new Note
+            {
+                Category = "Diğer"
+            };
 
             _notes.Add(newNote);
+
+            if (!_categories.Contains("Diğer"))
+                _categories.Add("Diğer");
+
             NoteList.SelectedItem = newNote;
 
             LoadNote(newNote);
+
             SaveNotes();
         }
 
@@ -215,33 +307,179 @@ namespace NotKosem
                     note.BackgroundColor));
 
             MainBorder.Opacity = note.Opacity;
+
             OpacitySlider.Value = note.Opacity;
 
             OpacityValueText.Text =
                 $"%{Math.Round(note.Opacity * 100)}";
 
             SelectColor(note.BackgroundColor);
+
+            if (!_categories.Contains(note.Category))
+                _categories.Add(note.Category);
+
+            CategorySelector.SelectedItem = note.Category;
+
             UpdateReminderStatus();
             UpdateNoteCount();
 
+            CloseSettingsPanels();
+
             _isLoadingNote = false;
         }
+
+        // AYAR PANELLERİ
+
+        private void CloseSettingsPanels()
+        {
+            SettingsPanel.Visibility = Visibility.Collapsed;
+
+            ColorSettingsPanel.Visibility = Visibility.Collapsed;
+            OpacitySettingsPanel.Visibility = Visibility.Collapsed;
+            ReminderSettingsPanel.Visibility = Visibility.Collapsed;
+            CategorySettingsPanel.Visibility = Visibility.Collapsed;
+        }
+
+        private void OpenSettingsPanel(StackPanel selectedPanel)
+        {
+            bool alreadyOpen =
+                SettingsPanel.Visibility == Visibility.Visible &&
+                selectedPanel.Visibility == Visibility.Visible;
+
+            CloseSettingsPanels();
+
+            if (!alreadyOpen)
+            {
+                SettingsPanel.Visibility = Visibility.Visible;
+                selectedPanel.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void ColorSettingsButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            OpenSettingsPanel(ColorSettingsPanel);
+        }
+
+        private void OpacitySettingsButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            OpenSettingsPanel(OpacitySettingsPanel);
+        }
+
+        private void ReminderSettingsButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            OpenSettingsPanel(ReminderSettingsPanel);
+        }
+
+        private void CategorySettingsButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            OpenSettingsPanel(CategorySettingsPanel);
+        }
+
+        // RENK İŞLEMLERİ
+
+        private void SelectColor(string color)
+        {
+            foreach (ComboBoxItem item in ColorSelector.Items)
+            {
+                if (item.Tag?.ToString() == color)
+                {
+                    ColorSelector.SelectedItem = item;
+                    return;
+                }
+            }
+
+            ColorSelector.SelectedIndex = 0;
+        }
+
+        private void ColorSelector_SelectionChanged(
+            object sender,
+            SelectionChangedEventArgs e)
+        {
+            if (_isLoadingNote || _currentNote == null)
+                return;
+
+            if (ColorSelector.SelectedItem is ComboBoxItem item)
+            {
+                string? color = item.Tag?.ToString();
+
+                if (color == null)
+                    return;
+
+                _currentNote.BackgroundColor = color;
+
+                MainBorder.Background = new SolidColorBrush(
+                    (Color)ColorConverter.ConvertFromString(color));
+
+                SaveNotes();
+            }
+        }
+
+        // SAYDAMLIK İŞLEMLERİ
+
+        private void OpacitySlider_ValueChanged(
+            object sender,
+            RoutedPropertyChangedEventArgs<double> e)
+        {
+            if (_isLoadingNote || _currentNote == null)
+                return;
+
+            double opacity = OpacitySlider.Value;
+
+            MainBorder.Opacity = opacity;
+            _currentNote.Opacity = opacity;
+
+            OpacityValueText.Text =
+                $"%{Math.Round(opacity * 100)}";
+
+            SaveNotes();
+        }
+
+        private void ResetOpacityButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            if (_currentNote == null)
+                return;
+
+            OpacitySlider.Value = 1.0;
+            _currentNote.Opacity = 1.0;
+            MainBorder.Opacity = 1.0;
+
+            OpacityValueText.Text = "%100";
+
+            SaveNotes();
+        }
+
+        // HATIRLATICI İŞLEMLERİ
 
         private void UpdateReminderStatus()
         {
             if (_currentNote?.ReminderAt is DateTime reminder)
             {
                 ReminderDatePicker.SelectedDate = reminder.Date;
-                ReminderTimeTextBox.Text = reminder.ToString("HH:mm");
+
+                ReminderTimeTextBox.Text =
+                    reminder.ToString("HH:mm");
 
                 ReminderStatusText.Text =
-                    "Hatırlatıcı: " + reminder.ToString("dd.MM.yyyy HH:mm");
+                    "Hatırlatıcı: " +
+                    reminder.ToString("dd.MM.yyyy HH:mm");
             }
             else
             {
                 ReminderDatePicker.SelectedDate = null;
                 ReminderTimeTextBox.Text = "09:00";
-                ReminderStatusText.Text = "Hatırlatıcı ayarlanmadı.";
+
+                ReminderStatusText.Text =
+                    "Hatırlatıcı ayarlanmadı.";
             }
         }
 
@@ -264,16 +502,18 @@ namespace NotKosem
                     CultureInfo.InvariantCulture,
                     out TimeSpan time))
             {
-                MessageBox.Show("Saat formatı hatalı. Örnek: 14:30");
+                MessageBox.Show(
+                    "Saat formatı hatalı. Örnek: 14:30");
                 return;
             }
 
-            DateTime reminder = ReminderDatePicker.SelectedDate.Value.Date
-                .Add(time);
+            DateTime reminder =
+                ReminderDatePicker.SelectedDate.Value.Date.Add(time);
 
             if (reminder <= DateTime.Now)
             {
-                MessageBox.Show("Hatırlatıcı gelecekte bir tarih ve saat olmalı.");
+                MessageBox.Show(
+                    "Hatırlatıcı gelecekte bir tarih ve saat olmalı.");
                 return;
             }
 
@@ -342,43 +582,14 @@ namespace NotKosem
 
             _trayIcon.BalloonTipTitle = title;
             _trayIcon.BalloonTipText = message;
+
             _trayIcon.BalloonTipIcon =
                 System.Windows.Forms.ToolTipIcon.Info;
 
             _trayIcon.ShowBalloonTip(5000);
         }
 
-        private void OpacitySlider_ValueChanged(
-            object sender,
-            RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (_isLoadingNote || _currentNote == null)
-                return;
-
-            double opacity = OpacitySlider.Value;
-
-            MainBorder.Opacity = opacity;
-            _currentNote.Opacity = opacity;
-
-            OpacityValueText.Text =
-                $"%{Math.Round(opacity * 100)}";
-
-            SaveNotes();
-        }
-
-        private void SelectColor(string color)
-        {
-            foreach (ComboBoxItem item in ColorSelector.Items)
-            {
-                if (item.Tag?.ToString() == color)
-                {
-                    ColorSelector.SelectedItem = item;
-                    return;
-                }
-            }
-
-            ColorSelector.SelectedIndex = 0;
-        }
+        // NOT KAYIT İŞLEMLERİ
 
         private void UpdateNoteCount()
         {
@@ -407,6 +618,8 @@ namespace NotKosem
             }
         }
 
+        // BUTON VE METİN İŞLEMLERİ
+
         private void NewNoteButton_Click(
             object sender,
             RoutedEventArgs e)
@@ -430,6 +643,7 @@ namespace NotKosem
                 return;
 
             _currentNote.Title = NoteTitleTextBox.Text;
+
             SaveNotes();
         }
 
@@ -441,61 +655,8 @@ namespace NotKosem
                 return;
 
             _currentNote.Content = NoteTextBox.Text;
-            SaveNotes();
-        }
-
-        private void ColorSelector_SelectionChanged(
-            object sender,
-            SelectionChangedEventArgs e)
-        {
-            if (_isLoadingNote || _currentNote == null)
-                return;
-
-            if (ColorSelector.SelectedItem is ComboBoxItem item)
-            {
-                string? color = item.Tag?.ToString();
-
-                if (color == null)
-                    return;
-
-                _currentNote.BackgroundColor = color;
-
-                MainBorder.Background = new SolidColorBrush(
-                    (Color)ColorConverter.ConvertFromString(color));
-
-                SaveNotes();
-            }
-        }
-
-        private void ResetOpacityButton_Click(
-            object sender,
-            RoutedEventArgs e)
-        {
-            if (_currentNote == null)
-                return;
-
-            OpacitySlider.Value = 1.0;
-            _currentNote.Opacity = 1.0;
-            MainBorder.Opacity = 1.0;
-            OpacityValueText.Text = "%100";
 
             SaveNotes();
-        }
-
-        private void PreviousNoteButton_Click(
-            object sender,
-            RoutedEventArgs e)
-        {
-            if (NoteList.SelectedIndex > 0)
-                NoteList.SelectedIndex--;
-        }
-
-        private void NextNoteButton_Click(
-            object sender,
-            RoutedEventArgs e)
-        {
-            if (NoteList.SelectedIndex < _notes.Count - 1)
-                NoteList.SelectedIndex++;
         }
 
         private void DeleteNoteButton_Click(
@@ -517,6 +678,7 @@ namespace NotKosem
                 return;
 
             _notes.Remove(noteToDelete);
+
             SaveNotes();
 
             if (_notes.Count == 0)
@@ -527,6 +689,8 @@ namespace NotKosem
 
             NoteList.SelectedIndex = 0;
         }
+
+        // PENCERE İŞLEMLERİ
 
         private void Header_MouseLeftButtonDown(
             object sender,

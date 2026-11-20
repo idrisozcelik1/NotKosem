@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -81,6 +80,21 @@ namespace NotKosem.Models
                 if (_reminderAt != value)
                 {
                     _reminderAt = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        private string _category = "Diğer";
+
+        public string Category
+        {
+            get => _category;
+            set
+            {
+                if (_category != value)
+                {
+                    _category = value;
                     OnPropertyChanged();
                 }
             }
