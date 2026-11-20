@@ -1,34 +1,60 @@
 ﻿
+using System;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using NotKosem.Models;
+using NotKosem.Services;
 
 namespace NotKosem
 {
     public partial class MainWindow : Window
     {
-        // Uygulamadaki bütün notları tutar.
         private ObservableCollection<Note> _notes;
 
-        // Şu anda üzerinde çalıştığımız not.
         private Note? _currentNote;
 
-        // Arayüzü güncellerken olayların birbirini tetiklemesini önler.
         private bool _isLoadingNote = false;
 
-        // Pencere oluşturulduğunda çalışır.
+        private bool _storageReady = true;
+
         public MainWindow()
         {
             InitializeComponent();
 
-            _notes = new ObservableCollection<Note>();
+            try
+            {
+                // Kayıtlı notları yükle.
+                _notes = NoteStorageService.LoadNotes();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Notlar yüklenirken bir hata oluştu.\n" +
+                    "Mevcut kayıt dosyasını kontrol et.\n\n" +
+                    ex.Message,
+                    "Yükleme Hatası",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
 
-            // Not listesini koleksiyona bir kez bağla.
+                _notes = new ObservableCollection<Note>();
+
+                // Hatalı kayıt dosyasının üzerine yazılmasını önle.
+                _storageReady = false;
+            }
+
             NoteList.ItemsSource = _notes;
 
-            CreateNewNote();
+            if (_notes.Count == 0)
+            {
+                CreateNewNote();
+            }
+            else
+            {
+                NoteList.SelectedIndex = 0;
+            }
         }
 
         // Yeni not oluşturur.
@@ -36,16 +62,13 @@ namespace NotKosem
         {
             Note newNote = new Note();
 
-            // Yeni notu listeye ekle.
             _notes.Add(newNote);
 
-            
-
-            // Yeni oluşturulan notu seç.
             NoteList.SelectedItem = newNote;
 
-            // Notu ekranda göster.
             LoadNote(newNote);
+
+            SaveNotes();
         }
 
         // Seçilen notu ekrana yükler.
@@ -55,13 +78,10 @@ namespace NotKosem
 
             _currentNote = note;
 
-            // Başlığı ekrana yaz.
             NoteTitleTextBox.Text = note.Title;
 
-            // İçeriği ekrana yaz.
             NoteTextBox.Text = note.Content;
 
-            // Not sayısını güncelle.
             UpdateNoteCount();
 
             _isLoadingNote = false;
@@ -74,6 +94,27 @@ namespace NotKosem
 
             NoteCountText.Text =
                 $"Not {currentIndex} / {_notes.Count}";
+        }
+
+        // Notları kaydeder.
+        private void SaveNotes()
+        {
+            if (!_storageReady)
+                return;
+
+            try
+            {
+                NoteStorageService.SaveNotes(_notes);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Notlar kaydedilirken hata oluştu:\n" + ex.Message,
+                    "Kayıt Hatası",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+            }
         }
 
         // Yeni not butonu.
@@ -101,6 +142,8 @@ namespace NotKosem
                 return;
 
             _currentNote.Title = NoteTitleTextBox.Text;
+
+            SaveNotes();
         }
 
         // Not içeriği değiştiğinde çalışır.
@@ -111,6 +154,8 @@ namespace NotKosem
                 return;
 
             _currentNote.Content = NoteTextBox.Text;
+
+            SaveNotes();
         }
 
         // Önceki nota geçer.
@@ -140,30 +185,28 @@ namespace NotKosem
             if (_currentNote == null)
                 return;
 
-            // Silinecek notu sakla.
             Note noteToDelete = _currentNote;
 
-            // Onay iste.
             MessageBoxResult result = MessageBox.Show(
                 "Bu notu silmek istediğine emin misin?",
                 "Not Sil",
                 MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
+                MessageBoxImage.Question
+            );
 
             if (result != MessageBoxResult.Yes)
                 return;
 
-            // Notu koleksiyondan sil.
             _notes.Remove(noteToDelete);
 
-            // Hiç not kalmadıysa yeni not oluştur.
+            SaveNotes();
+
             if (_notes.Count == 0)
             {
                 CreateNewNote();
                 return;
             }
 
-            // İlk notu seç.
             NoteList.SelectedIndex = 0;
         }
 
