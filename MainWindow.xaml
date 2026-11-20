@@ -470,30 +470,38 @@
             </RichTextBox>
 
             <!-- ALT BİLGİ -->
+
             <Grid Grid.Row="9" Margin="7,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <TextBlock x:Name="NoteCountText"
-                           Text="Not 1 / 1"
-                           VerticalAlignment="Center"
-                           Foreground="#9B8755"
-                           FontSize="11"/>
+               Text="Not 1 / 1"
+               VerticalAlignment="Center"
+               Foreground="#9B8755"
+               FontSize="11"/>
 
                 <Button Grid.Column="1"
-                        Content="Sil"
-                        Foreground="#A33B32"
-                        Click="DeleteNoteButton_Click"
-                        Padding="12,3"/>
+            Content="Masaüstüne Çıkar"
+            Click="OpenWidgetButton_Click"
+            Padding="8,3"/>
 
                 <Button Grid.Column="2"
-                        Content="Kaydet"
-                        Click="SaveNoteButton_Click"
-                        Padding="12,3"/>
+            Content="Sil"
+            Foreground="#A33B32"
+            Click="DeleteNoteButton_Click"
+            Padding="10,3"/>
+
+                <Button Grid.Column="3"
+            Content="Kaydet"
+            Click="SaveNoteButton_Click"
+            Padding="10,3"/>
             </Grid>
+
 
         </Grid>
     </Border>

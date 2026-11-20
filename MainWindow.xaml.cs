@@ -22,6 +22,8 @@ namespace NotKosem
 
         private readonly ObservableCollection<Note> _notes = new();
 
+        private readonly Dictionary<string, WidgetWindow> _widgetWindows = new();
+
         private readonly List<string> _defaultCategories = new()
         {
             "Kişisel",
@@ -94,6 +96,22 @@ namespace NotKosem
 
             _reminderTimer.Tick += ReminderTimer_Tick;
             _reminderTimer.Start();
+
+            Loaded += MainWindow_Loaded;
+        }
+
+        // ----------------------------------------------------
+        // UYGULAMA AÇILDIĞINDA WIDGET'LARI YÜKLE
+        // ----------------------------------------------------
+
+        private void MainWindow_Loaded(
+            object sender,
+            RoutedEventArgs e)
+        {
+            foreach (Note note in _notes.Where(n => n.IsWidgetOpen).ToList())
+            {
+                ShowWidget(note);
+            }
         }
 
         // ----------------------------------------------------
@@ -155,6 +173,13 @@ namespace NotKosem
 
                 _reminderTimer?.Stop();
 
+                foreach (var widget in _widgetWindows.Values.ToList())
+                {
+                    widget.Close();
+                }
+
+                SaveNotes();
+
                 if (_trayIcon != null)
                 {
                     _trayIcon.Visible = false;
@@ -170,6 +195,7 @@ namespace NotKosem
             menu.Items.Add(exitItem);
 
             _trayIcon.ContextMenuStrip = menu;
+
             _trayIcon.DoubleClick += (sender, e) => ShowWindow();
         }
 
@@ -263,7 +289,9 @@ namespace NotKosem
             Note newNote = new Note
             {
                 Title = "Yeni Not",
-                Category = "Diğer"
+                Category = "Diğer",
+                BackgroundColor = "#FFFFFF",
+                Opacity = 1.0
             };
 
             _notes.Add(newNote);
@@ -347,7 +375,6 @@ namespace NotKosem
                     return;
                 }
 
-                // Eski düz metin notları
                 NoteRichTextBox.Document.Blocks.Clear();
 
                 NoteRichTextBox.Document.Blocks.Add(
@@ -355,7 +382,6 @@ namespace NotKosem
             }
             catch
             {
-                // Bozuk veya eski formatlı içerikte uygulama çökmez.
                 NoteRichTextBox.Document.Blocks.Clear();
 
                 NoteRichTextBox.Document.Blocks.Add(
@@ -967,6 +993,54 @@ namespace NotKosem
         }
 
         // ----------------------------------------------------
+        // WIDGET İŞLEMLERİ
+        // ----------------------------------------------------
+
+        private void OpenWidgetButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            if (_currentNote == null)
+                return;
+
+            ShowWidget(_currentNote);
+        }
+
+        private void ShowWidget(Note note)
+        {
+            if (_widgetWindows.TryGetValue(
+                note.Id,
+                out WidgetWindow? existing))
+            {
+                if (existing.IsVisible)
+                {
+                    existing.Activate();
+                    return;
+                }
+
+                _widgetWindows.Remove(note.Id);
+            }
+
+            note.IsWidgetOpen = true;
+
+            WidgetWindow widget = new WidgetWindow(
+                note,
+                SaveNotes,
+                OnWidgetClosed);
+
+            _widgetWindows[note.Id] = widget;
+
+            SaveNotes();
+
+            widget.Show();
+        }
+
+        private void OnWidgetClosed(string noteId)
+        {
+            _widgetWindows.Remove(noteId);
+        }
+
+        // ----------------------------------------------------
         // NOT SİLME
         // ----------------------------------------------------
 
@@ -989,6 +1063,14 @@ namespace NotKosem
                 return;
 
             int deletedIndex = NoteList.SelectedIndex;
+
+            if (_widgetWindows.TryGetValue(
+                noteToDelete.Id,
+                out WidgetWindow? widget))
+            {
+                noteToDelete.IsWidgetOpen = false;
+                widget.Close();
+            }
 
             _notes.Remove(noteToDelete);
 
@@ -1024,8 +1106,8 @@ namespace NotKosem
         }
 
         private void MinimizeButton_Click(
-    object sender,
-    RoutedEventArgs e)
+            object sender,
+            RoutedEventArgs e)
         {
             WindowState = WindowState.Minimized;
         }
@@ -1047,6 +1129,5 @@ namespace NotKosem
         {
             Hide();
         }
-
     }
 }
