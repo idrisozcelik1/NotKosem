@@ -346,12 +346,25 @@ namespace NotKosem
 
         private void LoadRichTextContent(string? content)
         {
-            NoteRichTextBox.Document = new FlowDocument
+            var doc = new FlowDocument
             {
                 PagePadding = new Thickness(0),
                 LineHeight = double.NaN,
                 LineStackingStrategy = LineStackingStrategy.MaxHeight
             };
+
+            var listStyle = new Style(typeof(List));
+            listStyle.Setters.Add(new Setter(Block.MarginProperty, new Thickness(0)));
+            listStyle.Setters.Add(new Setter(Block.PaddingProperty, new Thickness(16, 0, 0, 0)));
+            listStyle.Setters.Add(new Setter(List.MarkerOffsetProperty, 6.0));
+            doc.Resources.Add(typeof(List), listStyle);
+
+            var listItemStyle = new Style(typeof(ListItem));
+            listItemStyle.Setters.Add(new Setter(ListItem.MarginProperty, new Thickness(0)));
+            listItemStyle.Setters.Add(new Setter(ListItem.PaddingProperty, new Thickness(0)));
+            doc.Resources.Add(typeof(ListItem), listItemStyle);
+
+            NoteRichTextBox.Document = doc;
 
             if (string.IsNullOrEmpty(content))
                 return;
@@ -375,6 +388,7 @@ namespace NotKosem
 
                     range.Load(stream, DataFormats.XamlPackage);
 
+                    NormalizeLists();
                     return;
                 }
 
@@ -792,6 +806,92 @@ namespace NotKosem
                 NoteRichTextBox);
 
             UpdateFormattingButtons();
+        }
+
+        private void BulletButton_Click(object sender, RoutedEventArgs e)
+        {
+            NoteRichTextBox.Focus();
+
+            Paragraph? paragraph = NoteRichTextBox.CaretPosition.Paragraph;
+
+            // Eğer satırda To-Do kutusu varsa önce onu temizle
+            if (paragraph != null)
+            {
+                TextRange range = new TextRange(paragraph.ContentStart, paragraph.ContentEnd);
+                string text = range.Text.TrimEnd('\r', '\n');
+
+                if (text.StartsWith("☐ ") || text.StartsWith("☑ "))
+                {
+                    range.Text = text.Substring(2);
+                    NoteRichTextBox.CaretPosition = paragraph.ContentEnd;
+                }
+            }
+
+            EditingCommands.ToggleBullets.Execute(null, NoteRichTextBox);
+            NormalizeLists();
+        }
+
+        private void TodoButton_Click(object sender, RoutedEventArgs e)
+        {
+            NoteRichTextBox.Focus();
+
+            Paragraph? paragraph = NoteRichTextBox.CaretPosition.Paragraph;
+            if (paragraph == null)
+                return;
+
+            // Eğer satır madde işaretli liste (ListItem) içindeyse önce madde işaretini kapat
+            if (paragraph.Parent is ListItem)
+            {
+                EditingCommands.ToggleBullets.Execute(null, NoteRichTextBox);
+                paragraph = NoteRichTextBox.CaretPosition.Paragraph;
+                if (paragraph == null)
+                    return;
+            }
+
+            TextRange paragraphRange = new TextRange(
+                paragraph.ContentStart,
+                paragraph.ContentEnd);
+
+            string text = paragraphRange.Text.TrimEnd('\r', '\n');
+
+            if (text.StartsWith("☐ "))
+            {
+                text = "☑ " + text.Substring(2);
+            }
+            else if (text.StartsWith("☑ "))
+            {
+                text = text.Substring(2); // 3. tıklamada kutuyu tamamen kaldırır
+            }
+            else
+            {
+                text = "☐ " + text;
+            }
+
+            paragraphRange.Text = text;
+            NoteRichTextBox.CaretPosition = paragraph.ContentEnd;
+        }
+
+        private void NormalizeLists()
+        {
+            foreach (List list in NoteRichTextBox.Document.Blocks.OfType<List>())
+            {
+                list.MarkerStyle = TextMarkerStyle.Disc;
+                list.MarkerOffset = 6;
+                list.Margin = new Thickness(0);
+                list.Padding = new Thickness(16, 0, 0, 0);
+
+                foreach (ListItem item in list.ListItems)
+                {
+                    item.Margin = new Thickness(0);
+                    item.Padding = new Thickness(0);
+
+                    foreach (Paragraph p in item.Blocks.OfType<Paragraph>())
+                    {
+                        p.Margin = new Thickness(0);
+                        p.Padding = new Thickness(0);
+                    }
+                }
+            }
         }
 
         private void NoteRichTextBox_SelectionChanged(

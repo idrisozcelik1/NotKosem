@@ -392,6 +392,20 @@
         Padding="2"
         Click="UnderlineButton_Click"
         ToolTip="Altı çizili"/>
+
+                        <Button Content="•"
+        Width="30"
+        Padding="2"
+        FontSize="16"
+        Click="BulletButton_Click"
+        ToolTip="Madde işaretli liste"/>
+
+                        <Button Content="☐"
+        Width="30"
+        Padding="2"
+        FontSize="14"
+        Click="TodoButton_Click"
+        ToolTip="To-do maddesi"/>
                     </StackPanel>
 
                     <ComboBox x:Name="FontFamilySelector"
@@ -470,11 +484,20 @@
                          AcceptsTab="True">
 
                 <FlowDocument PagePadding="0"
-              LineHeight="Auto"
-              LineStackingStrategy="MaxHeight">
+                              LineHeight="Auto"
+                              LineStackingStrategy="MaxHeight">
 
                     <FlowDocument.Resources>
                         <Style TargetType="{x:Type Paragraph}">
+                            <Setter Property="Margin" Value="0"/>
+                            <Setter Property="Padding" Value="0"/>
+                        </Style>
+                        <Style TargetType="{x:Type List}">
+                            <Setter Property="Margin" Value="0"/>
+                            <Setter Property="Padding" Value="16,0,0,0"/>
+                            <Setter Property="MarkerOffset" Value="6"/>
+                        </Style>
+                        <Style TargetType="{x:Type ListItem}">
                             <Setter Property="Margin" Value="0"/>
                             <Setter Property="Padding" Value="0"/>
                         </Style>
