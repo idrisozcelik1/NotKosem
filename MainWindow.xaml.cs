@@ -348,7 +348,9 @@ namespace NotKosem
         {
             NoteRichTextBox.Document = new FlowDocument
             {
-                PagePadding = new Thickness(0)
+                PagePadding = new Thickness(0),
+                LineHeight = double.NaN,
+                LineStackingStrategy = LineStackingStrategy.MaxHeight
             };
 
             if (string.IsNullOrEmpty(content))
