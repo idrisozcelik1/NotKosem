@@ -22,6 +22,8 @@ namespace NotKosem
 
         private readonly ObservableCollection<Note> _notes = new();
 
+        private CalendarEvent? _pendingCalendarEvent;
+
         private readonly Dictionary<string, WidgetWindow> _widgetWindows = new();
 
         private readonly List<string> _defaultCategories = new()
@@ -423,6 +425,21 @@ namespace NotKosem
 
             return RichContentPrefix +
                    Convert.ToBase64String(stream.ToArray());
+        }
+
+        private void CalendarButton_Click(object sender, RoutedEventArgs e)
+        {
+            CalendarWindow calendarWindow = new CalendarWindow();
+
+            calendarWindow.Owner = this;
+            calendarWindow.WindowStartupLocation = WindowStartupLocation.Manual;
+
+            calendarWindow.Left = Left;
+            calendarWindow.Top = Top;
+            calendarWindow.Width = Width;
+            calendarWindow.Height = Height;
+
+            calendarWindow.ShowDialog();
         }
 
         private string GetPlainTextFromContent(string? content)
@@ -1114,9 +1131,7 @@ namespace NotKosem
             SaveNotes();
         }
 
-        private void ReminderTimer_Tick(
-            object? sender,
-            EventArgs e)
+        private void ReminderTimer_Tick(object? sender, EventArgs e)
         {
             DateTime now = DateTime.Now;
 
@@ -1133,8 +1148,76 @@ namespace NotKosem
                 }
             }
 
+            CheckCalendarReminders(now);
+
             if (_currentNote != null)
                 UpdateReminderStatus();
+        }
+
+        private void CheckCalendarReminders(DateTime now)
+        {
+            List<CalendarEvent> events = CalendarStorageService.LoadEvents();
+
+            foreach (CalendarEvent calendarEvent in events)
+            {
+                if (calendarEvent.Notified ||
+                    calendarEvent.EventDate > now)
+                    continue;
+
+                calendarEvent.Notified = true;
+
+                _pendingCalendarEvent = calendarEvent;
+
+                ShowCalendarNotification(calendarEvent);
+            }
+
+            CalendarStorageService.SaveEvents(events);
+        }
+
+        private void ShowCalendarNotification(CalendarEvent calendarEvent)
+        {
+            if (_trayIcon == null)
+                return;
+
+            _trayIcon.BalloonTipTitle = calendarEvent.Title;
+            _trayIcon.BalloonTipText =
+                "Etkinlik zamanı geldi!\n" +
+                calendarEvent.EventDate.ToString("dd.MM.yyyy HH:mm");
+
+            _trayIcon.BalloonTipIcon =
+                System.Windows.Forms.ToolTipIcon.Info;
+
+            _trayIcon.ShowBalloonTip(5000);
+
+            _trayIcon.BalloonTipClicked -= CalendarNotification_Click;
+            _trayIcon.BalloonTipClicked += CalendarNotification_Click;
+        }
+
+        private void CalendarNotification_Click(object? sender, EventArgs e)
+        {
+            if (_pendingCalendarEvent == null)
+                return;
+
+            CalendarEvent calendarEvent = _pendingCalendarEvent;
+
+            Dispatcher.Invoke(() =>
+            {
+                ShowWindow();
+
+                CalendarWindow calendarWindow =
+                    new CalendarWindow(calendarEvent.EventDate, calendarEvent.Id);
+
+                calendarWindow.Owner = this;
+                calendarWindow.WindowStartupLocation =
+                    WindowStartupLocation.Manual;
+
+                calendarWindow.Left = Left;
+                calendarWindow.Top = Top;
+                calendarWindow.Width = Width;
+                calendarWindow.Height = Height;
+
+                calendarWindow.ShowDialog();
+            });
         }
 
         private void ShowReminderNotification(Note note)

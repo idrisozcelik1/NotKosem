@@ -169,21 +169,27 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="40"/>
                 </Grid.ColumnDefinitions>
 
                 <Button Grid.Column="0"
-                        Content="🎨 Görünüm"
-                        Click="ToggleAppearancePanel_Click"/>
+            Content="🎨 Görünüm"
+            Click="ToggleAppearancePanel_Click"/>
 
                 <Button Grid.Column="1"
-                        Content="🏷 Kategori"
-                        Click="ToggleCategoryPanel_Click"/>
+            Content="🏷 Kategori"
+            Click="ToggleCategoryPanel_Click"/>
 
                 <Button Grid.Column="2"
-                        Content="⏰ Hatırlatıcı"
-                        Click="ToggleReminderPanel_Click"/>
-            </Grid>
+            Content="⏰ Hatırlatıcı"
+            Click="ToggleReminderPanel_Click"/>
 
+                <Button Grid.Column="3"
+            Content="📅"
+            Padding="2"
+            Click="CalendarButton_Click"
+            ToolTip="Takvim"/>
+            </Grid>
             <!-- GÖRÜNÜM AYARLARI -->
             <Border x:Name="AppearancePanel"
                     Grid.Row="3"
